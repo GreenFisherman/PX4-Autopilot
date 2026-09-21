@@ -97,25 +97,11 @@ if [ -n "${PX4_HOME_LAT}" ] || [ -n "${PX4_HOME_LON}" ] || [ -n "${PX4_HOME_ALT}
 		exit 1
 	fi
 	echo "INFO  [init] Setting world origin to lat: ${PX4_HOME_LAT}, lon: ${PX4_HOME_LON}, alt: ${PX4_HOME_ALT}"
-	gz_origin_result=$(${gz_command} service -s "/world/${PX4_GZ_WORLD}/set_spherical_coordinates/blocking" \
+	${gz_command} service -s "/world/${PX4_GZ_WORLD}/set_spherical_coordinates" \
 		--reqtype gz.msgs.SphericalCoordinates \
 		--reptype gz.msgs.Boolean \
 		--timeout 1000 \
-		--req "surface_model: EARTH_WGS84, latitude_deg: ${PX4_HOME_LAT}, longitude_deg: ${PX4_HOME_LON}, elevation: ${PX4_HOME_ALT}")
-	case "${gz_origin_result}" in
-		*"data: true"*) ;;
-		*) echo "ERROR [init] Gazebo rejected the requested world origin"; exit 1 ;;
-	esac
-	export PX4_HOME_LAT PX4_HOME_LON PX4_HOME_ALT
-fi
-
-# Generate the optional airframe-specific boundary using the live world origin.
-# Keep it in this PX4 instance's working directory, not the shared ROMFS etc/.
-if [ -n "${PX4_GZ_GEOFENCE}" ]; then
-	if ! python3 "${PX4_GZ_MODELS}/gravenbol/geofence.py" --world "${PX4_GZ_WORLD}" --output "${PX4_GZ_GEOFENCE}"; then
-		echo "ERROR [init] Could not generate the Gravenbol safety fence"
-		exit 1
-	fi
+		--req "surface_model: EARTH_WGS84, latitude_deg: ${PX4_HOME_LAT}, longitude_deg: ${PX4_HOME_LON}, elevation: ${PX4_HOME_ALT}" > /dev/null 2>&1
 fi
 
 # Start gz_bridge - either spawn a model or connect to existing one

@@ -13,12 +13,6 @@ PX4_GZ_WORLD=${PX4_GZ_WORLD:=fish_usv}
 PX4_SIM_MODEL=${PX4_SIM_MODEL:=fish_usv}
 # Afloat beside the eastern beach, facing west into the main lake.
 PX4_GZ_MODEL_POSE=${PX4_GZ_MODEL_POSE:=0,0,0.131,0,0,3.141592653589793}
-PX4_GZ_GEOFENCE=gravenbol_geofence.txt
-
-# Restore the lake boundary and Hold action on every fish_usv start.
-param set GF_ACTION 2
-param set GF_PREDICT 0
-
 param set-default SIM_GZ_EN 1
 
 # QGC's rover virtual joystick sends -1000..1000 with zero at release.

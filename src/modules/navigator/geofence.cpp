@@ -537,9 +537,9 @@ Geofence::loadFromFile(const char *filename)
 	const char commentChar = '#';
 	int ret_val = PX4_ERROR;
 
-	mission_stats_entry_s stat{};
+	mission_stats_entry_s stat;
 	{
-		const bool success = _dataman_client.readSync(DM_KEY_FENCE_POINTS_STATE, 0, reinterpret_cast<uint8_t *>(&stat),
+		const bool success = _dataman_client.readAsync(DM_KEY_FENCE_POINTS_STATE, 0, reinterpret_cast<uint8_t *>(&stat),
 				     sizeof(mission_stats_entry_s));
 
 		if (!success) {
@@ -550,8 +550,8 @@ Geofence::loadFromFile(const char *filename)
 
 	dm_item_t write_fence_dataman_id{static_cast<dm_item_t>(stat.dataman_id) == DM_KEY_FENCE_POINTS_0 ? DM_KEY_FENCE_POINTS_1 : DM_KEY_FENCE_POINTS_0};
 
-	/* Open the requested fence definition file. */
-	fp = fopen(filename, "r");
+	/* open the mixer definition file */
+	fp = fopen(GEOFENCE_FILENAME, "r");
 
 	if (fp == nullptr) {
 		return PX4_ERROR;
@@ -580,11 +580,6 @@ Geofence::loadFromFile(const char *filename)
 		}
 
 		if (gotVertical) {
-			if (pointCounter >= DM_KEY_FENCE_POINTS_MAX) {
-				PX4_ERR("Too many geofence vertices");
-				goto error;
-			}
-
 			/* Parse the line as a geofence point */
 			mission_fence_point_s vertex{};
 			vertex.frame = NAV_FRAME_GLOBAL;
@@ -615,12 +610,6 @@ Geofence::loadFromFile(const char *filename)
 				}
 			}
 
-			if (!PX4_ISFINITE(vertex.lat) || !PX4_ISFINITE(vertex.lon)
-			    || fabs(vertex.lat) > 90.0 || fabs(vertex.lon) > 180.0) {
-				PX4_ERR("Invalid geofence coordinates");
-				goto error;
-			}
-
 			bool success = _dataman_client.writeSync(write_fence_dataman_id, pointCounter, reinterpret_cast<uint8_t *>(&vertex),
 					sizeof(vertex));
 
@@ -646,6 +635,8 @@ Geofence::loadFromFile(const char *filename)
 
 	/* Check if import was successful */
 	if (gotVertical && pointCounter > 2) {
+		mavlink_log_info(_navigator->get_mavlink_log_pub(), "Geofence imported\t");
+		events::send(events::ID("navigator_geofence_imported"), events::Log::Info, "Geofence imported");
 		ret_val = PX4_ERROR;
 		uint32_t crc32{0U};
 
@@ -659,28 +650,19 @@ Geofence::loadFromFile(const char *filename)
 			if (success) {
 				mission_fence_point.vertex_count = pointCounter;
 				crc32 = crc32_for_fence_point(mission_fence_point, crc32);
-				success = _dataman_client.writeSync(write_fence_dataman_id, seq, reinterpret_cast<uint8_t *>(&mission_fence_point),
+				_dataman_client.writeSync(write_fence_dataman_id, seq, reinterpret_cast<uint8_t *>(&mission_fence_point),
 							  sizeof(mission_fence_point_s));
-			}
-
-			if (!success) {
-				goto error;
 			}
 		}
 
-		mission_stats_entry_s stats{};
-		stats.dataman_id = write_fence_dataman_id;
+		mission_stats_entry_s stats;
 		stats.num_items = pointCounter;
 		stats.opaque_id = crc32;
 
 		bool success = _dataman_client.writeSync(DM_KEY_FENCE_POINTS_STATE, 0, reinterpret_cast<uint8_t *>(&stats),
 				sizeof(mission_stats_entry_s));
 
-		if (success) {
-			ret_val = PX4_OK;
-			mavlink_log_info(_navigator->get_mavlink_log_pub(), "Geofence imported\t");
-			events::send(events::ID("navigator_geofence_imported"), events::Log::Info, "Geofence imported");
-		}
+		if (success) { ret_val = PX4_OK; }
 
 	} else {
 		mavlink_log_critical(_navigator->get_mavlink_log_pub(), "Geofence: import error\t");

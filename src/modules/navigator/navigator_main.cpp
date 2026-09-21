@@ -56,7 +56,6 @@
 #include <px4_platform_common/px4_config.h>
 #include <px4_platform_common/defines.h>
 #include <px4_platform_common/events.h>
-#include <px4_platform_common/getopt.h>
 #include <px4_platform_common/posix.h>
 #include <px4_platform_common/tasks.h>
 #include <systemlib/mavlink_log.h>
@@ -157,7 +156,7 @@ void Navigator::run()
 	 * if /fs/microsd/etc/geofence.txt load from this file */
 	struct stat buffer;
 
-	if (!_geofence_file_loaded && stat(GEOFENCE_FILENAME, &buffer) == 0) {
+	if (stat(GEOFENCE_FILENAME, &buffer) == 0) {
 		PX4_INFO("Loading geofence from %s", GEOFENCE_FILENAME);
 		_geofence.loadFromFile(GEOFENCE_FILENAME);
 	}
@@ -1098,35 +1097,11 @@ int Navigator::task_spawn(int argc, char *argv[])
 
 Navigator *Navigator::instantiate(int argc, char *argv[])
 {
-	const char *fence_file = nullptr;
-	int myoptind = 1;
-	const char *myoptarg = nullptr;
-	int ch;
-
-	while ((ch = px4_getopt(argc, argv, "f:", &myoptind, &myoptarg)) != EOF) {
-		if (ch == 'f') {
-			fence_file = myoptarg;
-
-		} else {
-			print_usage("unknown option");
-			return nullptr;
-		}
-	}
-
 	Navigator *instance = new Navigator();
 
 	if (instance == nullptr) {
 		PX4_ERR("alloc failed");
 
-	} else if (fence_file != nullptr) {
-		// Complete the import before reporting started, so MAVLink sees this fence.
-		if (instance->_geofence.loadFromFile(fence_file) != PX4_OK) {
-			PX4_ERR("Failed to load required fence: %s", fence_file);
-			delete instance;
-			return nullptr;
-		}
-
-		instance->_geofence_file_loaded = true;
 	}
 
 	return instance;
@@ -1710,7 +1685,6 @@ controller.
 
 	PRINT_MODULE_USAGE_NAME("navigator", "controller");
 	PRINT_MODULE_USAGE_COMMAND("start");
-	PRINT_MODULE_USAGE_PARAM_STRING('f', nullptr, "<file>", "Load a required startup geofence instead of the SD card default", true);
 	PRINT_MODULE_USAGE_COMMAND_DESCR("fencefile", "load a geofence file from SD card, stored at etc/geofence.txt");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("fake_traffic", "publishes 24 fake transponder_report_s uORB messages");
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
