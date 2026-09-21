@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# @name Fish USV
+# @type Rover
+# @class Rover
+#
+# Twin-thruster surface vessel for Gazebo fish-detection simulation.
+
+. ${R}etc/init.d/rc.rover_differential_defaults
+
+PX4_SIMULATOR=${PX4_SIMULATOR:=gz}
+PX4_GZ_WORLD=${PX4_GZ_WORLD:=fish_usv}
+PX4_SIM_MODEL=${PX4_SIM_MODEL:=fish_usv}
+# Afloat beside the eastern beach, facing west into the main lake.
+PX4_GZ_MODEL_POSE=${PX4_GZ_MODEL_POSE:=0,0,0.131,0,0,3.141592653589793}
+PX4_GZ_GEOFENCE=gravenbol_geofence.txt
+
+# Restore the lake boundary and Hold action on every fish_usv start.
+param set GF_ACTION 2
+param set GF_PREDICT 0
+
+param set-default SIM_GZ_EN 1
+
+# QGC's rover virtual joystick sends -1000..1000 with zero at release.
+param set-default MAV_MAN_THR 1
+
+# QGC joystick input may stop when switching to autonomous operation.
+# Allow Mission (bit 0) and post-mission Hold (bit 1) without stick input.
+# Manual modes retain their manual-control-loss failsafe.
+param set-default COM_RCL_EXCEPT 3
+
+# Differential-thrust vessel geometry and rover control limits.
+param set-default RD_WHEEL_TRACK 0.64
+param set-default RD_TRANS_DRV_TRN 0.785398
+param set-default RD_TRANS_TRN_DRV 0.174533
+param set-default RD_YAW_STK_GAIN 0.6
+# Mission/position modes require a configured heading and yaw-rate controller.
+# Manual thrust/steering bypasses these loops and can work without them.
+param set-default RO_YAW_P 2
+param set-default RO_YAW_RATE_LIM 60
+param set-default RO_YAW_RATE_P 0.5
+param set-default RO_YAW_RATE_I 0.1
+param set-default RO_YAW_ACCEL_LIM 60
+param set-default RO_YAW_DECEL_LIM 120
+param set-default RO_MAX_THR_SPEED 2
+param set-default RO_SPEED_LIM 1.8
+param set-default RO_ACCEL_LIM 1
+param set-default RO_DECEL_LIM 2
+param set-default RO_SPEED_P 0.1
+param set-default RO_SPEED_I 0.05
+param set-default RO_JERK_LIM 2
+param set-default RO_SPEED_RED 1
+param set-default NAV_ACC_RAD 1
+param set-default PP_LOOKAHD_GAIN 1
+param set-default PP_LOOKAHD_MIN 1
+param set-default PP_LOOKAHD_MAX 5
+
+# The GenericMotorModel maps 1000..2000 to -1..1 around 1500.
+param set-default SIM_GZ_EC_FUNC1 101 # starboard propeller
+param set-default SIM_GZ_EC_MIN1 1000
+param set-default SIM_GZ_EC_MAX1 2000
+param set-default SIM_GZ_EC_DIS1 1500
+param set-default SIM_GZ_EC_FUNC2 102 # port propeller
+param set-default SIM_GZ_EC_MIN2 1000
+param set-default SIM_GZ_EC_MAX2 2000
+param set-default SIM_GZ_EC_DIS2 1500

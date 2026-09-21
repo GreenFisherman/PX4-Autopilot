@@ -288,7 +288,15 @@ fi
 # Note: rc.vehicle_setup is the entry point for all vehicle type specific setup.
 . ${R}etc/init.d/rc.vehicle_setup
 
-navigator start
+if [ -n "${PX4_GZ_GEOFENCE}" ]; then
+	# The simulator prepares an instance-local fence before starting commander.
+	if ! navigator start -f "${PX4_GZ_GEOFENCE}"; then
+		echo "ERROR [init] Required simulation geofence could not be loaded"
+		exit 1
+	fi
+else
+	navigator start
+fi
 
 # Try to start the UXRCE-DDS Client with UDP transport if module exists
 uxrce_dds_ns=""

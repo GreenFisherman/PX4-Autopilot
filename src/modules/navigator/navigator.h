@@ -303,6 +303,7 @@ public:
 	void trigger_hagl_failsafe(uint8_t nav_state);
 
 private:
+	bool _geofence_file_loaded{false}; ///< Explicit startup fence loaded before MAVLink reads its metadata.
 
 	int _local_pos_sub{-1};
 	int _mission_sub{-1};

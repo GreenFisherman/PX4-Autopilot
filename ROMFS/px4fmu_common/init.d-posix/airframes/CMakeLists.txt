@@ -116,6 +116,7 @@ px4_add_romfs_files(
 	52000_gz_rover_mecanum
 
 	60002_gz_uuv_bluerov2_heavy
+	22001_gz_fish_usv
 
 	70000_gz_atmos
 

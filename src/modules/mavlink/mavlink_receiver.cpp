@@ -2104,10 +2104,18 @@ MavlinkReceiver::handle_message_manual_control(mavlink_message_t *msg)
 
 	if (math::isInRange((int)mavlink_manual_control.y, -1000, 1000)) { manual_control_setpoint.roll = mavlink_manual_control.y / 1000.f; }
 
-	// For backwards compatibility we need to interpret throttle in range [0,1000]
-	// Convert from [0, 1000] to internal range [-1, 1]
-	// (([0, 1000] / 1000 * 2) - 1 = [-1, 1]
-	if (math::isInRange((int)mavlink_manual_control.z, 0, 1000)) { manual_control_setpoint.throttle = (mavlink_manual_control.z / 500.f) - 1.f; }
+	if (_param_mav_man_thr.get() == 1) {
+		// Rover ground stations can send signed throttle with zero at stick centre.
+		if (math::isInRange((int)mavlink_manual_control.z, -1000, 1000)) {
+			manual_control_setpoint.throttle = mavlink_manual_control.z / 1000.f;
+		}
+
+	} else {
+		// Preserve the legacy [0, 1000] mapping unless signed input is selected.
+		if (math::isInRange((int)mavlink_manual_control.z, 0, 1000)) {
+			manual_control_setpoint.throttle = (mavlink_manual_control.z / 500.f) - 1.f;
+		}
+	}
 
 	if (math::isInRange((int)mavlink_manual_control.r, -1000, 1000)) { manual_control_setpoint.yaw = mavlink_manual_control.r / 1000.f; }
 

@@ -58,6 +58,23 @@ PARAM_DEFINE_INT32(MAV_COMP_ID, 1);
 PARAM_DEFINE_INT32(MAV_PROTO_VER, 2);
 
 /**
+ * MAVLink manual control throttle range
+ *
+ * Select the MANUAL_CONTROL z-axis range sent by the ground station.
+ * Legacy input uses 0..1000, with 500 mapped to neutral for reversible motors.
+ * Signed input uses -1000..1000, with 0 mapped to neutral, as sent by QGC's
+ * virtual joystick for rovers. This affects all MAVLink manual control inputs,
+ * not RC receiver inputs or autonomous control. Change only while disarmed.
+ *
+ * @group MAVLink
+ * @value 0 Legacy 0..1000
+ * @value 1 Signed -1000..1000
+ * @min 0
+ * @max 1
+ */
+PARAM_DEFINE_INT32(MAV_MAN_THR, 0);
+
+/**
  * MAVLink SiK Radio ID
  *
  * When non-zero the MAVLink app will attempt to configure the
