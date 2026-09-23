@@ -330,6 +330,13 @@ bool GZBridge::subscribeOpticalFlow(bool required)
 
 void GZBridge::clockCallback(const gz::msgs::Clock &msg)
 {
+	// Do not release init() on the initial zero-time clock message. The bridge
+	// timestamps sensor samples with hrt_absolute_time(), which is still zero
+	// until the simulation clock advances.
+	if (msg.sim().sec() == 0 && msg.sim().nsec() == 0) {
+		return;
+	}
+
 	// NOTE: PX4-SITL time needs to stay in sync with gz, so this clock-sync will happen on every callback.
 	struct timespec ts;
 	ts.tv_sec = msg.sim().sec();
