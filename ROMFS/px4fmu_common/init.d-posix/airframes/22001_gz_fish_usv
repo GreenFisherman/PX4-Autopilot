@@ -9,7 +9,7 @@
 . ${R}etc/init.d/rc.rover_differential_defaults
 
 PX4_SIMULATOR=${PX4_SIMULATOR:=gz}
-PX4_GZ_WORLD=${PX4_GZ_WORLD:=fish_usv}
+PX4_GZ_WORLD=${PX4_GZ_WORLD:=gravenbol}
 PX4_SIM_MODEL=${PX4_SIM_MODEL:=fish_usv}
 # Afloat beside the eastern beach, facing west into the main lake.
 PX4_GZ_MODEL_POSE=${PX4_GZ_MODEL_POSE:=0,0,0.131,0,0,3.141592653589793}
