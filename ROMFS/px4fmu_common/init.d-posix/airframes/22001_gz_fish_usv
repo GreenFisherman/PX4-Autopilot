@@ -23,6 +23,11 @@ param set-default MAV_MAN_THR 1
 # Manual modes retain their manual-control-loss failsafe.
 param set-default COM_RCL_EXCEPT 3
 
+# A lost companion must stop autonomous travel rather than select Position/RTL.
+# These are defaults; verify COM_OBL_RC_ACT=5 and COM_OF_LOSS_T=1 on saved profiles.
+param set-default COM_OBL_RC_ACT 5
+param set-default COM_OF_LOSS_T 1
+
 # Differential-thrust vessel geometry and rover control limits.
 param set-default RD_WHEEL_TRACK 0.64
 param set-default RD_TRANS_DRV_TRN 0.785398
