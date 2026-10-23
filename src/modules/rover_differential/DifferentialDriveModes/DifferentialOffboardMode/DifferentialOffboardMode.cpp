@@ -80,7 +80,7 @@ void DifferentialOffboardMode::offboardControl()
 		// Honour an explicit heading, including at zero speed where atan2(0, 0)
 		// would otherwise rotate a stopped surface vessel toward north.
 		rover_attitude_setpoint.yaw_setpoint = PX4_ISFINITE(trajectory_setpoint.yaw) ?
-						     trajectory_setpoint.yaw : atan2f(velocity_ned(1), velocity_ned(0));
+						       trajectory_setpoint.yaw : atan2f(velocity_ned(1), velocity_ned(0));
 		_rover_attitude_setpoint_pub.publish(rover_attitude_setpoint);
 
 	} else if (offboard_control_mode.attitude) {
